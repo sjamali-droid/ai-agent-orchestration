@@ -1,0 +1,44 @@
+# --- Environment & API keys (do not commit) ---
+.env
+.env.*
+!.env.example
+!.env.*.example
+!.env.sample
+!.envrc.example
+
+# direnv (may contain secrets)
+.envrc
+!.envrc.example
+
+# --- Keys, certs, signing material ---
+*.pem
+*.p12
+*.pfx
+id_rsa
+id_ed25519
+*.key
+
+# --- Cloud & CI local credential files ---
+**/service-account*.json
+**/*-sa.json
+*credentials*.json
+.aws/credentials
+.gcp/
+.azure/
+
+# --- Terraform / IaC secrets ---
+*.tfvars
+!*.tfvars.example
+.terraform.tfvars
+**/terraform.tfstate
+**/terraform.tfstate.*
+
+# --- Kubernetes / Helm local overrides ---
+**/kubeconfig
+**/*kubeconfig*
+**/values.local.yaml
+**/values.secrets.yaml
+**/secrets.local.yaml
+
+# --- OS & editor noise ---
+.DS_Store

@@ -1,0 +1,56 @@
+{{- $root := . -}}
+{{- range $key, $svc := .Values.services }}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ $svc.name }}
+  namespace: {{ include "tasksphere.namespace" $root }}
+  labels:
+    {{- include "tasksphere.serviceLabels" (dict "Root" $root "Name" $svc.name) | nindent 4 }}
+spec:
+  replicas: {{ $svc.replicaCount }}
+  selector:
+    matchLabels:
+      {{- include "tasksphere.selectorLabels" (dict "Name" $svc.name) | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "tasksphere.serviceLabels" (dict "Root" $root "Name" $svc.name) | nindent 8 }}
+    spec:
+      containers:
+        - name: {{ $svc.name }}
+          image: "{{ $svc.image.repository }}:{{ $svc.image.tag }}"
+          imagePullPolicy: {{ $root.Values.global.imagePullPolicy }}
+          ports:
+            - containerPort: {{ $svc.port }}
+              protocol: TCP
+          envFrom:
+            - configMapRef:
+                name: tasksphere-config
+            - secretRef:
+                name: tasksphere-secrets
+          resources:
+            requests:
+              memory: {{ $svc.resources.requests.memory | quote }}
+              cpu: {{ $svc.resources.requests.cpu | quote }}
+            limits:
+              memory: {{ $svc.resources.limits.memory | quote }}
+              cpu: {{ $svc.resources.limits.cpu | quote }}
+          livenessProbe:
+            httpGet:
+              path: {{ $svc.healthCheck.path }}
+              port: {{ $svc.port }}
+            initialDelaySeconds: {{ $svc.healthCheck.initialDelaySeconds }}
+            periodSeconds: {{ $svc.healthCheck.periodSeconds }}
+            timeoutSeconds: 5
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              path: {{ $svc.healthCheck.path }}
+              port: {{ $svc.port }}
+            initialDelaySeconds: 5
+            periodSeconds: 10
+            timeoutSeconds: 3
+            failureThreshold: 3
+{{- end }}

@@ -1,0 +1,31 @@
+apiVersion: dapr.io/v1alpha1
+kind: Component
+metadata:
+  name: tasksphere-statestore
+  namespace: tasksphere-dev
+  labels:
+    app.kubernetes.io/part-of: tasksphere-pro
+    app.kubernetes.io/managed-by: dapr
+spec:
+  type: state.postgresql
+  version: v1
+  metadata:
+    - name: connectionString
+      secretKeyRef:
+        name: postgres-secret
+        key: connection-string
+    - name: tableName
+      value: "dapr_state"
+    - name: keyPrefix
+      value: "appid"
+    - name: actorStateStore
+      value: "false"
+    - name: cleanupIntervalInSeconds
+      value: "3600"
+  auth:
+    secretStore: tasksphere-secrets
+  scopes:
+    - auth-service
+    - project-service
+    - task-service
+    - notification-service

@@ -1,0 +1,149 @@
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: require-resource-limits
+  annotations:
+    policies.kyverno.io/title: Require Resource Limits
+    policies.kyverno.io/category: Best Practices
+    policies.kyverno.io/severity: medium
+    policies.kyverno.io/description: >-
+      All containers must declare CPU and memory requests and limits
+      to prevent resource contention in the TaskSphere namespace.
+spec:
+  validationFailureAction: Enforce
+  background: true
+  rules:
+    - name: check-resource-limits
+      match:
+        any:
+          - resources:
+              kinds:
+                - Pod
+              namespaces:
+                - tasksphere-dev
+                - tasksphere-staging
+                - tasksphere-prod
+      validate:
+        message: "CPU and memory requests/limits are required for all containers."
+        pattern:
+          spec:
+            containers:
+              - resources:
+                  requests:
+                    memory: "?*"
+                    cpu: "?*"
+                  limits:
+                    memory: "?*"
+                    cpu: "?*"
+---
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: disallow-privileged-containers
+  annotations:
+    policies.kyverno.io/title: Disallow Privileged Containers
+    policies.kyverno.io/category: Pod Security
+    policies.kyverno.io/severity: high
+    policies.kyverno.io/description: >-
+      Privileged containers have full access to the host. This policy
+      blocks any pod running with privileged: true in TaskSphere namespaces.
+spec:
+  validationFailureAction: Enforce
+  background: true
+  rules:
+    - name: deny-privileged
+      match:
+        any:
+          - resources:
+              kinds:
+                - Pod
+              namespaces:
+                - tasksphere-dev
+                - tasksphere-staging
+                - tasksphere-prod
+      validate:
+        message: "Privileged containers are not allowed in TaskSphere namespaces."
+        pattern:
+          spec:
+            containers:
+              - securityContext:
+                  privileged: "false"
+            =(initContainers):
+              - securityContext:
+                  privileged: "false"
+---
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: require-run-as-non-root
+  annotations:
+    policies.kyverno.io/title: Require Non-Root User
+    policies.kyverno.io/category: Pod Security
+    policies.kyverno.io/severity: high
+    policies.kyverno.io/description: >-
+      All containers must run as non-root to reduce the attack surface
+      in the event of a container escape.
+spec:
+  validationFailureAction: Enforce
+  background: true
+  rules:
+    - name: check-non-root
+      match:
+        any:
+          - resources:
+              kinds:
+                - Pod
+              namespaces:
+                - tasksphere-dev
+                - tasksphere-staging
+                - tasksphere-prod
+      validate:
+        message: "Containers must run as non-root. Set runAsNonRoot: true and runAsUser >= 1000."
+        pattern:
+          spec:
+            securityContext:
+              runAsNonRoot: true
+            containers:
+              - securityContext:
+                  runAsNonRoot: true
+---
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: require-trusted-registries
+  annotations:
+    policies.kyverno.io/title: Require Images From Trusted Registries
+    policies.kyverno.io/category: Supply Chain Security
+    policies.kyverno.io/severity: high
+    policies.kyverno.io/description: >-
+      Only images from the approved private registry and official base
+      images are allowed. This prevents pulling unvetted images.
+spec:
+  validationFailureAction: Enforce
+  background: true
+  rules:
+    - name: validate-image-registry
+      match:
+        any:
+          - resources:
+              kinds:
+                - Pod
+              namespaces:
+                - tasksphere-dev
+                - tasksphere-staging
+                - tasksphere-prod
+      validate:
+        message: >-
+          Images must come from a trusted registry:
+          ghcr.io/org/tasksphere-*, docker.io/library/*, or gcr.io/distroless/*.
+        deny:
+          conditions:
+            all:
+              - key: "{{ request.object.spec.containers[].image }}"
+                operator: AnyNotIn
+                value:
+                  - "ghcr.io/org/tasksphere-*"
+                  - "docker.io/library/*"
+                  - "gcr.io/distroless/*"
+                  - "docker.io/fluent/*"
+                  - "docker.io/bitnami/*"

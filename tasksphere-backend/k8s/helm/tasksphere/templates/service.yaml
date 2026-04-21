@@ -1,0 +1,20 @@
+{{- $root := . -}}
+{{- range $key, $svc := .Values.services }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ $svc.name }}
+  namespace: {{ include "tasksphere.namespace" $root }}
+  labels:
+    {{- include "tasksphere.serviceLabels" (dict "Root" $root "Name" $svc.name) | nindent 4 }}
+spec:
+  type: ClusterIP
+  selector:
+    {{- include "tasksphere.selectorLabels" (dict "Name" $svc.name) | nindent 4 }}
+  ports:
+    - port: {{ $svc.port }}
+      targetPort: {{ $svc.port }}
+      protocol: TCP
+      name: http
+{{- end }}

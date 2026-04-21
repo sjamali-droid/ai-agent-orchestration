@@ -1,0 +1,12 @@
+apiVersion: v2
+name: tasksphere
+description: A Helm chart for TaskSphere Pro — microservices-based project management platform
+type: application
+version: 0.1.0
+appVersion: "0.1.0"
+keywords:
+  - tasksphere
+  - microservices
+  - project-management
+maintainers:
+  - name: TaskSphere Team

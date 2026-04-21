@@ -1,0 +1,52 @@
+Thank you for installing {{ .Chart.Name }}!
+
+Your release is named: {{ .Release.Name }}
+Namespace:            {{ include "tasksphere.namespace" . }}
+
+== Services Deployed ==
+
+  - auth-service        → port {{ .Values.services.auth.port }}
+  - project-service     → port {{ .Values.services.project.port }}
+  - task-service        → port {{ .Values.services.task.port }}
+  - file-service        → port {{ .Values.services.file.port }}
+  - notification-service→ port {{ .Values.services.notification.port }}
+  - frontend            → port {{ .Values.services.frontend.port }}
+
+{{- if .Values.ingress.enabled }}
+
+== Ingress ==
+
+  Host: {{ .Values.ingress.host }}
+
+  Routes:
+    /api/auth/*           → auth-service:{{ .Values.services.auth.port }}
+    /api/projects/*       → project-service:{{ .Values.services.project.port }}
+    /api/tasks/*          → task-service:{{ .Values.services.task.port }}
+    /api/files/*          → file-service:{{ .Values.services.file.port }}
+    /api/notifications/*  → notification-service:{{ .Values.services.notification.port }}
+    /*                    → frontend:{{ .Values.services.frontend.port }}
+
+  To access locally, add this to /etc/hosts:
+
+    127.0.0.1  {{ .Values.ingress.host }}
+
+{{- end }}
+
+== External Dependencies ==
+
+  Make sure the following are accessible within the cluster:
+    - PostgreSQL  ({{ .Values.config.databaseUrl }})
+    - Kafka       ({{ .Values.config.kafkaBrokers }})
+    - MinIO       ({{ .Values.config.s3Endpoint }})
+    - Elasticsearch ({{ .Values.config.elasticsearchUrl }})
+
+== Next Steps ==
+
+  1. Verify pods are running:
+     kubectl get pods -n {{ include "tasksphere.namespace" . }}
+
+  2. Check ingress:
+     kubectl get ingress -n {{ include "tasksphere.namespace" . }}
+
+  3. Update secrets for production:
+     kubectl edit secret tasksphere-secrets -n {{ include "tasksphere.namespace" . }}

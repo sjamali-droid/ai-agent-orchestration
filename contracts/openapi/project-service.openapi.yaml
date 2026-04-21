@@ -1,0 +1,194 @@
+openapi: "3.1.0"
+info:
+  title: project-service API
+  version: "0.1.0"
+  description: Project CRUD, membership, privacy, and dashboard stats
+
+paths:
+  /projects:
+    post:
+      summary: Create project (PM+ role)
+      security: [{ BearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [name]
+              properties:
+                name: { type: string, maxLength: 255 }
+                description: { type: string }
+                is_private: { type: boolean, default: false }
+      responses:
+        "201":
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Project" }
+    get:
+      summary: List projects visible to current user
+      security: [{ BearerAuth: [] }]
+      parameters:
+        - { name: page, in: query, schema: { type: integer, default: 1 } }
+        - { name: limit, in: query, schema: { type: integer, default: 20 } }
+        - { name: search, in: query, schema: { type: string } }
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items: { $ref: "#/components/schemas/Project" }
+                  total: { type: integer }
+
+  /projects/{id}:
+    get:
+      summary: Get project detail
+      security: [{ BearerAuth: [] }]
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: string, format: uuid } }
+      responses:
+        "200":
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Project" }
+    patch:
+      summary: Update project (PM+ role)
+      security: [{ BearerAuth: [] }]
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: string, format: uuid } }
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name: { type: string }
+                description: { type: string }
+                is_private: { type: boolean }
+      responses:
+        "200":
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Project" }
+    delete:
+      summary: Delete project (Admin only)
+      security: [{ BearerAuth: [] }]
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: string, format: uuid } }
+      responses:
+        "204":
+          description: Deleted
+
+  /projects/{id}/members:
+    get:
+      summary: List project members
+      security: [{ BearerAuth: [] }]
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: string, format: uuid } }
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/ProjectMember" }
+    post:
+      summary: Add member to project (PM+ role)
+      security: [{ BearerAuth: [] }]
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: string, format: uuid } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [user_id]
+              properties:
+                user_id: { type: string, format: uuid }
+                role: { type: string, enum: [project_manager, member, guest], default: member }
+      responses:
+        "201":
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ProjectMember" }
+
+  /projects/{id}/members/{userId}:
+    delete:
+      summary: Remove member (PM+ role)
+      security: [{ BearerAuth: [] }]
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: string, format: uuid } }
+        - { name: userId, in: path, required: true, schema: { type: string, format: uuid } }
+      responses:
+        "204":
+          description: Removed
+
+  /projects/{id}/stats:
+    get:
+      summary: Project task stats (progress %)
+      security: [{ BearerAuth: [] }]
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: string, format: uuid } }
+      responses:
+        "200":
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ProjectStats" }
+
+  /projects/dashboard:
+    get:
+      summary: Dashboard stats for all user projects
+      security: [{ BearerAuth: [] }]
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/ProjectStats" }
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  schemas:
+    Project:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        name: { type: string }
+        description: { type: string }
+        is_private: { type: boolean }
+        owner_id: { type: string, format: uuid }
+        member_count: { type: integer }
+        created_at: { type: string, format: date-time }
+
+    ProjectMember:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        user_id: { type: string, format: uuid }
+        name: { type: string }
+        email: { type: string }
+        role: { type: string }
+        joined_at: { type: string, format: date-time }
+
+    ProjectStats:
+      type: object
+      properties:
+        project_id: { type: string, format: uuid }
+        project_name: { type: string }
+        total_tasks: { type: integer }
+        backlog: { type: integer }
+        in_progress: { type: integer }
+        review: { type: integer }
+        done: { type: integer }
+        progress_percent: { type: number }

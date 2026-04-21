@@ -1,0 +1,43 @@
+apiVersion: dapr.io/v1alpha1
+kind: Component
+metadata:
+  name: tasksphere-pubsub
+  namespace: tasksphere-dev
+  labels:
+    app.kubernetes.io/part-of: tasksphere-pro
+    app.kubernetes.io/managed-by: dapr
+spec:
+  type: pubsub.kafka
+  version: v1
+  metadata:
+    - name: brokers
+      value: "kafka.tasksphere-dev.svc.cluster.local:9092"
+    - name: consumerGroup
+      value: "{appid}-group"
+    - name: authType
+      value: "certificate"
+    - name: authRequired
+      value: "true"
+    - name: saslUsername
+      secretKeyRef:
+        name: kafka-secret
+        key: sasl-username
+    - name: saslPassword
+      secretKeyRef:
+        name: kafka-secret
+        key: sasl-password
+    - name: initialOffset
+      value: "oldest"
+    - name: maxMessageBytes
+      value: "1048576"
+    - name: disableTls
+      value: "false"
+    - name: clientID
+      value: "tasksphere-dapr"
+  auth:
+    secretStore: tasksphere-secrets
+  scopes:
+    - auth-service
+    - project-service
+    - task-service
+    - notification-service

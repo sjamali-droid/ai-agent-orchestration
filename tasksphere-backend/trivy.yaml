@@ -1,0 +1,38 @@
+severity:
+  - HIGH
+  - CRITICAL
+
+scan:
+  security-checks:
+    - vuln
+    - misconfig
+    - secret
+
+vulnerability:
+  type:
+    - os
+    - library
+  ignore-unfixed: false
+
+misconfiguration:
+  include-non-failures: false
+
+image:
+  removed-pkgs: true
+  input: []
+
+output:
+  format: table
+  template: ""
+  list-all-pkgs: false
+
+cache:
+  clear: false
+  backend: fs
+
+db:
+  skip-update: false
+  light: false
+
+registry:
+  insecure: false

@@ -1,0 +1,63 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: tasksphere-ingress
+  namespace: tasksphere
+  labels:
+    app.kubernetes.io/name: tasksphere-ingress
+    app.kubernetes.io/instance: tasksphere-ingress
+    app.kubernetes.io/part-of: tasksphere
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /$2
+    nginx.ingress.kubernetes.io/use-regex: "true"
+    nginx.ingress.kubernetes.io/proxy-body-size: "50m"
+    nginx.ingress.kubernetes.io/proxy-read-timeout: "60"
+    nginx.ingress.kubernetes.io/proxy-send-timeout: "60"
+spec:
+  ingressClassName: nginx
+  rules:
+    - host: tasksphere.local
+      http:
+        paths:
+          - path: /api/auth(/|$)(.*)
+            pathType: ImplementationSpecific
+            backend:
+              service:
+                name: auth-service
+                port:
+                  number: 3001
+          - path: /api/projects(/|$)(.*)
+            pathType: ImplementationSpecific
+            backend:
+              service:
+                name: project-service
+                port:
+                  number: 3002
+          - path: /api/tasks(/|$)(.*)
+            pathType: ImplementationSpecific
+            backend:
+              service:
+                name: task-service
+                port:
+                  number: 3003
+          - path: /api/files(/|$)(.*)
+            pathType: ImplementationSpecific
+            backend:
+              service:
+                name: file-service
+                port:
+                  number: 3004
+          - path: /api/notifications(/|$)(.*)
+            pathType: ImplementationSpecific
+            backend:
+              service:
+                name: notification-service
+                port:
+                  number: 3005
+          - path: /(.*)
+            pathType: ImplementationSpecific
+            backend:
+              service:
+                name: frontend
+                port:
+                  number: 3000

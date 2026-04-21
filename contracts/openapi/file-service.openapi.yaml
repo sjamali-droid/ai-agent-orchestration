@@ -1,0 +1,96 @@
+openapi: "3.1.0"
+info:
+  title: file-service API
+  version: "0.1.0"
+  description: Attachment upload/download via S3 presigned URLs
+
+paths:
+  /tasks/{taskId}/attachments:
+    post:
+      summary: Request presigned upload URL
+      security: [{ BearerAuth: [] }]
+      parameters:
+        - { name: taskId, in: path, required: true, schema: { type: string, format: uuid } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [filename, content_type, size_bytes]
+              properties:
+                filename: { type: string }
+                content_type: { type: string, enum: ["image/png", "image/jpeg", "application/pdf"] }
+                size_bytes: { type: integer, maximum: 5242880 }
+      responses:
+        "201":
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/UploadResponse" }
+        "413":
+          description: File too large
+        "415":
+          description: Unsupported file type
+    get:
+      summary: List attachments for task
+      security: [{ BearerAuth: [] }]
+      parameters:
+        - { name: taskId, in: path, required: true, schema: { type: string, format: uuid } }
+      responses:
+        "200":
+          content:
+            application/json:
+              schema: { type: array, items: { $ref: "#/components/schemas/Attachment" } }
+
+  /attachments/{id}:
+    delete:
+      summary: Delete attachment (uploader or PM+)
+      security: [{ BearerAuth: [] }]
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: string, format: uuid } }
+      responses:
+        "204":
+          description: Deleted from S3 and metadata removed
+
+  /attachments/{id}/download:
+    get:
+      summary: Get presigned download URL
+      security: [{ BearerAuth: [] }]
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: string, format: uuid } }
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  download_url: { type: string, format: uri }
+                  expires_in: { type: integer }
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  schemas:
+    UploadResponse:
+      type: object
+      properties:
+        attachment_id: { type: string, format: uuid }
+        upload_url: { type: string, format: uri }
+        expires_in: { type: integer }
+
+    Attachment:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        task_id: { type: string, format: uuid }
+        filename: { type: string }
+        content_type: { type: string }
+        size_bytes: { type: integer }
+        download_url: { type: string, format: uri }
+        uploaded_by: { type: string, format: uuid }
+        created_at: { type: string, format: date-time }

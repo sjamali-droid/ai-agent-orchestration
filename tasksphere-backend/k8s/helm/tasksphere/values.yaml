@@ -1,0 +1,144 @@
+global:
+  namespace: tasksphere
+  imageRegistry: tasksphere
+  imagePullPolicy: IfNotPresent
+
+services:
+  auth:
+    name: auth-service
+    replicaCount: 2
+    image:
+      repository: tasksphere/auth-service
+      tag: "latest"
+    port: 3001
+    resources:
+      requests:
+        memory: "128Mi"
+        cpu: "100m"
+      limits:
+        memory: "256Mi"
+        cpu: "250m"
+    healthCheck:
+      path: /health
+      initialDelaySeconds: 15
+      periodSeconds: 20
+
+  project:
+    name: project-service
+    replicaCount: 2
+    image:
+      repository: tasksphere/project-service
+      tag: "latest"
+    port: 3002
+    resources:
+      requests:
+        memory: "128Mi"
+        cpu: "100m"
+      limits:
+        memory: "256Mi"
+        cpu: "250m"
+    healthCheck:
+      path: /health
+      initialDelaySeconds: 15
+      periodSeconds: 20
+
+  task:
+    name: task-service
+    replicaCount: 2
+    image:
+      repository: tasksphere/task-service
+      tag: "latest"
+    port: 3003
+    resources:
+      requests:
+        memory: "128Mi"
+        cpu: "100m"
+      limits:
+        memory: "256Mi"
+        cpu: "250m"
+    healthCheck:
+      path: /health
+      initialDelaySeconds: 15
+      periodSeconds: 20
+
+  file:
+    name: file-service
+    replicaCount: 2
+    image:
+      repository: tasksphere/file-service
+      tag: "latest"
+    port: 3004
+    resources:
+      requests:
+        memory: "128Mi"
+        cpu: "100m"
+      limits:
+        memory: "256Mi"
+        cpu: "250m"
+    healthCheck:
+      path: /health
+      initialDelaySeconds: 15
+      periodSeconds: 20
+
+  notification:
+    name: notification-service
+    replicaCount: 2
+    image:
+      repository: tasksphere/notification-service
+      tag: "latest"
+    port: 3005
+    resources:
+      requests:
+        memory: "128Mi"
+        cpu: "100m"
+      limits:
+        memory: "256Mi"
+        cpu: "250m"
+    healthCheck:
+      path: /health
+      initialDelaySeconds: 15
+      periodSeconds: 20
+
+  frontend:
+    name: frontend
+    replicaCount: 2
+    image:
+      repository: tasksphere/frontend
+      tag: "latest"
+    port: 3000
+    resources:
+      requests:
+        memory: "128Mi"
+        cpu: "100m"
+      limits:
+        memory: "256Mi"
+        cpu: "250m"
+    healthCheck:
+      path: /
+      initialDelaySeconds: 15
+      periodSeconds: 20
+
+ingress:
+  enabled: true
+  className: nginx
+  host: tasksphere.local
+  annotations:
+    nginx.ingress.kubernetes.io/proxy-body-size: "50m"
+    nginx.ingress.kubernetes.io/proxy-read-timeout: "60"
+    nginx.ingress.kubernetes.io/proxy-send-timeout: "60"
+  tls: []
+
+config:
+  databaseUrl: "postgresql://tasksphere:changeme@postgres:5432/tasksphere"
+  kafkaBrokers: "kafka:9092"
+  s3Endpoint: "http://minio:9000"
+  s3Bucket: "tasksphere-files"
+  elasticsearchUrl: "http://elasticsearch:9200"
+  nodeEnv: "production"
+  logLevel: "info"
+
+secrets:
+  jwtSecret: "Y2hhbmdlLW1lLWluLXByb2R1Y3Rpb24="
+  dbPassword: "Y2hhbmdlbWU="
+  minioAccessKey: "bWluaW9hZG1pbg=="
+  minioSecretKey: "bWluaW9hZG1pbg=="

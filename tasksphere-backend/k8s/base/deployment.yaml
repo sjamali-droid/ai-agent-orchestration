@@ -1,0 +1,340 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: auth-service
+  namespace: tasksphere
+  labels:
+    app.kubernetes.io/name: auth-service
+    app.kubernetes.io/instance: auth-service
+    app.kubernetes.io/part-of: tasksphere
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: auth-service
+      app.kubernetes.io/instance: auth-service
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: auth-service
+        app.kubernetes.io/instance: auth-service
+        app.kubernetes.io/part-of: tasksphere
+    spec:
+      containers:
+        - name: auth-service
+          image: tasksphere/auth-service:latest
+          ports:
+            - containerPort: 3001
+              protocol: TCP
+          envFrom:
+            - configMapRef:
+                name: tasksphere-config
+            - secretRef:
+                name: tasksphere-secrets
+          resources:
+            requests:
+              memory: "128Mi"
+              cpu: "100m"
+            limits:
+              memory: "256Mi"
+              cpu: "250m"
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 3001
+            initialDelaySeconds: 15
+            periodSeconds: 20
+            timeoutSeconds: 5
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 3001
+            initialDelaySeconds: 5
+            periodSeconds: 10
+            timeoutSeconds: 3
+            failureThreshold: 3
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: project-service
+  namespace: tasksphere
+  labels:
+    app.kubernetes.io/name: project-service
+    app.kubernetes.io/instance: project-service
+    app.kubernetes.io/part-of: tasksphere
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: project-service
+      app.kubernetes.io/instance: project-service
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: project-service
+        app.kubernetes.io/instance: project-service
+        app.kubernetes.io/part-of: tasksphere
+    spec:
+      containers:
+        - name: project-service
+          image: tasksphere/project-service:latest
+          ports:
+            - containerPort: 3002
+              protocol: TCP
+          envFrom:
+            - configMapRef:
+                name: tasksphere-config
+            - secretRef:
+                name: tasksphere-secrets
+          resources:
+            requests:
+              memory: "128Mi"
+              cpu: "100m"
+            limits:
+              memory: "256Mi"
+              cpu: "250m"
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 3002
+            initialDelaySeconds: 15
+            periodSeconds: 20
+            timeoutSeconds: 5
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 3002
+            initialDelaySeconds: 5
+            periodSeconds: 10
+            timeoutSeconds: 3
+            failureThreshold: 3
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: task-service
+  namespace: tasksphere
+  labels:
+    app.kubernetes.io/name: task-service
+    app.kubernetes.io/instance: task-service
+    app.kubernetes.io/part-of: tasksphere
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: task-service
+      app.kubernetes.io/instance: task-service
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: task-service
+        app.kubernetes.io/instance: task-service
+        app.kubernetes.io/part-of: tasksphere
+    spec:
+      containers:
+        - name: task-service
+          image: tasksphere/task-service:latest
+          ports:
+            - containerPort: 3003
+              protocol: TCP
+          envFrom:
+            - configMapRef:
+                name: tasksphere-config
+            - secretRef:
+                name: tasksphere-secrets
+          resources:
+            requests:
+              memory: "128Mi"
+              cpu: "100m"
+            limits:
+              memory: "256Mi"
+              cpu: "250m"
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 3003
+            initialDelaySeconds: 15
+            periodSeconds: 20
+            timeoutSeconds: 5
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 3003
+            initialDelaySeconds: 5
+            periodSeconds: 10
+            timeoutSeconds: 3
+            failureThreshold: 3
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: file-service
+  namespace: tasksphere
+  labels:
+    app.kubernetes.io/name: file-service
+    app.kubernetes.io/instance: file-service
+    app.kubernetes.io/part-of: tasksphere
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: file-service
+      app.kubernetes.io/instance: file-service
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: file-service
+        app.kubernetes.io/instance: file-service
+        app.kubernetes.io/part-of: tasksphere
+    spec:
+      containers:
+        - name: file-service
+          image: tasksphere/file-service:latest
+          ports:
+            - containerPort: 3004
+              protocol: TCP
+          envFrom:
+            - configMapRef:
+                name: tasksphere-config
+            - secretRef:
+                name: tasksphere-secrets
+          resources:
+            requests:
+              memory: "128Mi"
+              cpu: "100m"
+            limits:
+              memory: "256Mi"
+              cpu: "250m"
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 3004
+            initialDelaySeconds: 15
+            periodSeconds: 20
+            timeoutSeconds: 5
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 3004
+            initialDelaySeconds: 5
+            periodSeconds: 10
+            timeoutSeconds: 3
+            failureThreshold: 3
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: notification-service
+  namespace: tasksphere
+  labels:
+    app.kubernetes.io/name: notification-service
+    app.kubernetes.io/instance: notification-service
+    app.kubernetes.io/part-of: tasksphere
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: notification-service
+      app.kubernetes.io/instance: notification-service
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: notification-service
+        app.kubernetes.io/instance: notification-service
+        app.kubernetes.io/part-of: tasksphere
+    spec:
+      containers:
+        - name: notification-service
+          image: tasksphere/notification-service:latest
+          ports:
+            - containerPort: 3005
+              protocol: TCP
+          envFrom:
+            - configMapRef:
+                name: tasksphere-config
+            - secretRef:
+                name: tasksphere-secrets
+          resources:
+            requests:
+              memory: "128Mi"
+              cpu: "100m"
+            limits:
+              memory: "256Mi"
+              cpu: "250m"
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 3005
+            initialDelaySeconds: 15
+            periodSeconds: 20
+            timeoutSeconds: 5
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 3005
+            initialDelaySeconds: 5
+            periodSeconds: 10
+            timeoutSeconds: 3
+            failureThreshold: 3
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: frontend
+  namespace: tasksphere
+  labels:
+    app.kubernetes.io/name: frontend
+    app.kubernetes.io/instance: frontend
+    app.kubernetes.io/part-of: tasksphere
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: frontend
+      app.kubernetes.io/instance: frontend
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: frontend
+        app.kubernetes.io/instance: frontend
+        app.kubernetes.io/part-of: tasksphere
+    spec:
+      containers:
+        - name: frontend
+          image: tasksphere/frontend:latest
+          ports:
+            - containerPort: 3000
+              protocol: TCP
+          env:
+            - name: NODE_ENV
+              value: "production"
+          resources:
+            requests:
+              memory: "128Mi"
+              cpu: "100m"
+            limits:
+              memory: "256Mi"
+              cpu: "250m"
+          livenessProbe:
+            httpGet:
+              path: /
+              port: 3000
+            initialDelaySeconds: 15
+            periodSeconds: 20
+            timeoutSeconds: 5
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              path: /
+              port: 3000
+            initialDelaySeconds: 5
+            periodSeconds: 10
+            timeoutSeconds: 3
+            failureThreshold: 3

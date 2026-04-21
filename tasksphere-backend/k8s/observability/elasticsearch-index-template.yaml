@@ -1,0 +1,155 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: elasticsearch-index-template
+  namespace: tasksphere-dev
+  labels:
+    app.kubernetes.io/part-of: tasksphere-pro
+    app.kubernetes.io/component: logging
+data:
+  setup-template.sh: |
+    #!/usr/bin/env sh
+    set -e
+
+    ES_URL="${ELASTICSEARCH_URL:-http://elasticsearch:9200}"
+
+    until curl -sf "${ES_URL}/_cluster/health" > /dev/null 2>&1; do
+      echo "Waiting for Elasticsearch..."
+      sleep 5
+    done
+
+    curl -sf -X PUT "${ES_URL}/_index_template/tasksphere-logs" \
+      -H 'Content-Type: application/json' \
+      -d @/templates/tasksphere-logs-template.json
+
+    echo "Index template 'tasksphere-logs' applied."
+
+  tasksphere-logs-template.json: |
+    {
+      "index_patterns": ["tasksphere-logs-*"],
+      "priority": 200,
+      "template": {
+        "settings": {
+          "number_of_shards": 2,
+          "number_of_replicas": 1,
+          "index.lifecycle.name": "tasksphere-ilm-policy",
+          "index.lifecycle.rollover_alias": "tasksphere-logs",
+          "index.refresh_interval": "10s"
+        },
+        "mappings": {
+          "dynamic_templates": [
+            {
+              "strings_as_keywords": {
+                "match_mapping_type": "string",
+                "mapping": {
+                  "type": "keyword",
+                  "ignore_above": 1024
+                }
+              }
+            }
+          ],
+          "properties": {
+            "@timestamp": {
+              "type": "date"
+            },
+            "log": {
+              "type": "text",
+              "fields": {
+                "keyword": {
+                  "type": "keyword",
+                  "ignore_above": 4096
+                }
+              }
+            },
+            "log_processed": {
+              "type": "object",
+              "dynamic": true
+            },
+            "stream": {
+              "type": "keyword"
+            },
+            "kubernetes": {
+              "properties": {
+                "namespace_name": { "type": "keyword" },
+                "pod_name": { "type": "keyword" },
+                "container_name": { "type": "keyword" },
+                "labels": {
+                  "properties": {
+                    "app": { "type": "keyword" },
+                    "app_kubernetes_io/name": { "type": "keyword" },
+                    "app_kubernetes_io/part-of": { "type": "keyword" }
+                  }
+                }
+              }
+            },
+            "cluster": {
+              "type": "keyword"
+            },
+            "project": {
+              "type": "keyword"
+            },
+            "level": {
+              "type": "keyword"
+            },
+            "service": {
+              "type": "keyword"
+            },
+            "trace_id": {
+              "type": "keyword"
+            },
+            "request_id": {
+              "type": "keyword"
+            },
+            "user_id": {
+              "type": "keyword"
+            },
+            "duration_ms": {
+              "type": "float"
+            },
+            "http_status": {
+              "type": "integer"
+            },
+            "http_method": {
+              "type": "keyword"
+            },
+            "http_path": {
+              "type": "keyword"
+            }
+          }
+        }
+      },
+      "_meta": {
+        "description": "TaskSphere Pro application log index template",
+        "managed_by": "devsecops-agent"
+      }
+    }
+
+  tasksphere-ilm-policy.json: |
+    {
+      "policy": {
+        "phases": {
+          "hot": {
+            "min_age": "0ms",
+            "actions": {
+              "rollover": {
+                "max_primary_shard_size": "25gb",
+                "max_age": "1d"
+              }
+            }
+          },
+          "warm": {
+            "min_age": "2d",
+            "actions": {
+              "shrink": { "number_of_shards": 1 },
+              "forcemerge": { "max_num_segments": 1 }
+            }
+          },
+          "delete": {
+            "min_age": "30d",
+            "actions": {
+              "delete": {}
+            }
+          }
+        }
+      }
+    }

@@ -1,0 +1,255 @@
+openapi: "3.1.0"
+info:
+  title: task-service API
+  version: "0.1.0"
+  description: Task CRUD, status workflow, assignment, comments, and search
+
+paths:
+  /projects/{projectId}/tasks:
+    post:
+      summary: Create task (Member+ role)
+      security: [{ BearerAuth: [] }]
+      parameters:
+        - { name: projectId, in: path, required: true, schema: { type: string, format: uuid } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/TaskCreate" }
+      responses:
+        "201":
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Task" }
+    get:
+      summary: List tasks (filterable, paginated)
+      security: [{ BearerAuth: [] }]
+      parameters:
+        - { name: projectId, in: path, required: true, schema: { type: string, format: uuid } }
+        - { name: status, in: query, schema: { type: string, enum: [backlog, in_progress, review, done] } }
+        - { name: priority, in: query, schema: { type: string, enum: [low, medium, high, urgent] } }
+        - { name: assignee, in: query, schema: { type: string, format: uuid } }
+        - { name: search, in: query, schema: { type: string } }
+        - { name: page, in: query, schema: { type: integer, default: 1 } }
+        - { name: limit, in: query, schema: { type: integer, default: 20 } }
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data: { type: array, items: { $ref: "#/components/schemas/Task" } }
+                  total: { type: integer }
+
+  /tasks/{id}:
+    get:
+      summary: Get task detail
+      security: [{ BearerAuth: [] }]
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: string, format: uuid } }
+      responses:
+        "200":
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Task" }
+    patch:
+      summary: Update task
+      security: [{ BearerAuth: [] }]
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: string, format: uuid } }
+      requestBody:
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/TaskUpdate" }
+      responses:
+        "200":
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Task" }
+    delete:
+      summary: Soft delete task (PM+ role)
+      security: [{ BearerAuth: [] }]
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: string, format: uuid } }
+      responses:
+        "204":
+          description: Deleted
+
+  /tasks/{id}/status:
+    patch:
+      summary: Transition task status (state machine enforced)
+      security: [{ BearerAuth: [] }]
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: string, format: uuid } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [status]
+              properties:
+                status: { type: string, enum: [backlog, in_progress, review, done] }
+      responses:
+        "200":
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Task" }
+        "400":
+          description: Invalid status transition
+
+  /tasks/{id}/assignees:
+    get:
+      summary: List task assignees
+      security: [{ BearerAuth: [] }]
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: string, format: uuid } }
+      responses:
+        "200":
+          content:
+            application/json:
+              schema: { type: array, items: { $ref: "#/components/schemas/Assignee" } }
+    post:
+      summary: Assign member(s) to task
+      security: [{ BearerAuth: [] }]
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: string, format: uuid } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [user_ids]
+              properties:
+                user_ids: { type: array, items: { type: string, format: uuid } }
+      responses:
+        "201":
+          description: Assigned
+
+  /tasks/{id}/assignees/{userId}:
+    delete:
+      summary: Unassign member
+      security: [{ BearerAuth: [] }]
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: string, format: uuid } }
+        - { name: userId, in: path, required: true, schema: { type: string, format: uuid } }
+      responses:
+        "204":
+          description: Unassigned
+
+  /tasks/{id}/comments:
+    get:
+      summary: List comments on task (threaded)
+      security: [{ BearerAuth: [] }]
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: string, format: uuid } }
+      responses:
+        "200":
+          content:
+            application/json:
+              schema: { type: array, items: { $ref: "#/components/schemas/Comment" } }
+    post:
+      summary: Add comment to task
+      security: [{ BearerAuth: [] }]
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: string, format: uuid } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [body]
+              properties:
+                body: { type: string }
+                parent_comment_id: { type: string, format: uuid }
+      responses:
+        "201":
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Comment" }
+
+  /comments/{id}:
+    patch:
+      summary: Edit own comment
+      security: [{ BearerAuth: [] }]
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: string, format: uuid } }
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                body: { type: string }
+      responses:
+        "200":
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Comment" }
+    delete:
+      summary: Delete comment (own or PM+)
+      security: [{ BearerAuth: [] }]
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: string, format: uuid } }
+      responses:
+        "204":
+          description: Deleted
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  schemas:
+    TaskCreate:
+      type: object
+      required: [title]
+      properties:
+        title: { type: string, maxLength: 100 }
+        description: { type: string }
+        priority: { type: string, enum: [low, medium, high, urgent], default: medium }
+
+    TaskUpdate:
+      type: object
+      properties:
+        title: { type: string, maxLength: 100 }
+        description: { type: string }
+        priority: { type: string, enum: [low, medium, high, urgent] }
+
+    Task:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        project_id: { type: string, format: uuid }
+        title: { type: string }
+        description: { type: string }
+        status: { type: string, enum: [backlog, in_progress, review, done] }
+        priority: { type: string, enum: [low, medium, high, urgent] }
+        created_by: { type: string, format: uuid }
+        assignees: { type: array, items: { $ref: "#/components/schemas/Assignee" } }
+        created_at: { type: string, format: date-time }
+        updated_at: { type: string, format: date-time }
+
+    Assignee:
+      type: object
+      properties:
+        user_id: { type: string, format: uuid }
+        name: { type: string }
+        assigned_at: { type: string, format: date-time }
+
+    Comment:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        task_id: { type: string, format: uuid }
+        author_id: { type: string, format: uuid }
+        author_name: { type: string }
+        parent_comment_id: { type: string, format: uuid }
+        body: { type: string }
+        created_at: { type: string, format: date-time }
+        updated_at: { type: string, format: date-time }

@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: tasksphere-config
+  namespace: tasksphere
+  labels:
+    app.kubernetes.io/part-of: tasksphere
+data:
+  DATABASE_URL: "postgresql://tasksphere:changeme@postgres:5432/tasksphere"
+  KAFKA_BROKERS: "kafka:9092"
+  S3_ENDPOINT: "http://minio:9000"
+  S3_BUCKET: "tasksphere-files"
+  ELASTICSEARCH_URL: "http://elasticsearch:9200"
+  NODE_ENV: "production"
+  LOG_LEVEL: "info"

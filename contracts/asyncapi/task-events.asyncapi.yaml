@@ -1,0 +1,139 @@
+asyncapi: "3.0.0"
+info:
+  title: TaskSphere Domain Events
+  version: "0.1.0"
+  description: Kafka event channels for all domain events consumed by notification-service and future consumers
+
+channels:
+  tasksphere.task.created:
+    address: tasksphere.task.created
+    messages:
+      taskCreated:
+        payload:
+          type: object
+          properties:
+            event_id: { type: string, format: uuid }
+            task_id: { type: string, format: uuid }
+            project_id: { type: string, format: uuid }
+            title: { type: string }
+            created_by: { type: string, format: uuid }
+            timestamp: { type: string, format: date-time }
+
+  tasksphere.task.updated:
+    address: tasksphere.task.updated
+    messages:
+      taskUpdated:
+        payload:
+          type: object
+          properties:
+            event_id: { type: string, format: uuid }
+            task_id: { type: string, format: uuid }
+            project_id: { type: string, format: uuid }
+            changed_fields: { type: array, items: { type: string } }
+            updated_by: { type: string, format: uuid }
+            timestamp: { type: string, format: date-time }
+
+  tasksphere.task.status.changed:
+    address: tasksphere.task.status.changed
+    messages:
+      taskStatusChanged:
+        payload:
+          type: object
+          properties:
+            event_id: { type: string, format: uuid }
+            task_id: { type: string, format: uuid }
+            project_id: { type: string, format: uuid }
+            old_status: { type: string, enum: [backlog, in_progress, review, done] }
+            new_status: { type: string, enum: [backlog, in_progress, review, done] }
+            changed_by: { type: string, format: uuid }
+            timestamp: { type: string, format: date-time }
+
+  tasksphere.task.assigned:
+    address: tasksphere.task.assigned
+    messages:
+      taskAssigned:
+        payload:
+          type: object
+          properties:
+            event_id: { type: string, format: uuid }
+            task_id: { type: string, format: uuid }
+            project_id: { type: string, format: uuid }
+            assignee_id: { type: string, format: uuid }
+            assigned_by: { type: string, format: uuid }
+            timestamp: { type: string, format: date-time }
+
+  tasksphere.task.unassigned:
+    address: tasksphere.task.unassigned
+    messages:
+      taskUnassigned:
+        payload:
+          type: object
+          properties:
+            event_id: { type: string, format: uuid }
+            task_id: { type: string, format: uuid }
+            assignee_id: { type: string, format: uuid }
+            timestamp: { type: string, format: date-time }
+
+  tasksphere.comment.created:
+    address: tasksphere.comment.created
+    messages:
+      commentCreated:
+        payload:
+          type: object
+          properties:
+            event_id: { type: string, format: uuid }
+            comment_id: { type: string, format: uuid }
+            task_id: { type: string, format: uuid }
+            project_id: { type: string, format: uuid }
+            author_id: { type: string, format: uuid }
+            timestamp: { type: string, format: date-time }
+
+  tasksphere.project.created:
+    address: tasksphere.project.created
+    messages:
+      projectCreated:
+        payload:
+          type: object
+          properties:
+            event_id: { type: string, format: uuid }
+            project_id: { type: string, format: uuid }
+            name: { type: string }
+            owner_id: { type: string, format: uuid }
+            timestamp: { type: string, format: date-time }
+
+  tasksphere.project.member.added:
+    address: tasksphere.project.member.added
+    messages:
+      memberAdded:
+        payload:
+          type: object
+          properties:
+            event_id: { type: string, format: uuid }
+            project_id: { type: string, format: uuid }
+            user_id: { type: string, format: uuid }
+            role: { type: string }
+            added_by: { type: string, format: uuid }
+            timestamp: { type: string, format: date-time }
+
+  tasksphere.project.member.removed:
+    address: tasksphere.project.member.removed
+    messages:
+      memberRemoved:
+        payload:
+          type: object
+          properties:
+            event_id: { type: string, format: uuid }
+            project_id: { type: string, format: uuid }
+            user_id: { type: string, format: uuid }
+            timestamp: { type: string, format: date-time }
+
+operations:
+  publishTaskEvents:
+    action: send
+    channel: { $ref: "#/channels/tasksphere.task.created" }
+    description: task-service publishes task domain events
+
+  consumeForNotifications:
+    action: receive
+    channel: { $ref: "#/channels/tasksphere.task.assigned" }
+    description: notification-service consumes events to generate alerts

@@ -1,0 +1,120 @@
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: auth-service
+  namespace: tasksphere
+  labels:
+    app.kubernetes.io/name: auth-service
+    app.kubernetes.io/instance: auth-service
+    app.kubernetes.io/part-of: tasksphere
+spec:
+  type: ClusterIP
+  selector:
+    app.kubernetes.io/name: auth-service
+    app.kubernetes.io/instance: auth-service
+  ports:
+    - port: 3001
+      targetPort: 3001
+      protocol: TCP
+      name: http
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: project-service
+  namespace: tasksphere
+  labels:
+    app.kubernetes.io/name: project-service
+    app.kubernetes.io/instance: project-service
+    app.kubernetes.io/part-of: tasksphere
+spec:
+  type: ClusterIP
+  selector:
+    app.kubernetes.io/name: project-service
+    app.kubernetes.io/instance: project-service
+  ports:
+    - port: 3002
+      targetPort: 3002
+      protocol: TCP
+      name: http
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: task-service
+  namespace: tasksphere
+  labels:
+    app.kubernetes.io/name: task-service
+    app.kubernetes.io/instance: task-service
+    app.kubernetes.io/part-of: tasksphere
+spec:
+  type: ClusterIP
+  selector:
+    app.kubernetes.io/name: task-service
+    app.kubernetes.io/instance: task-service
+  ports:
+    - port: 3003
+      targetPort: 3003
+      protocol: TCP
+      name: http
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: file-service
+  namespace: tasksphere
+  labels:
+    app.kubernetes.io/name: file-service
+    app.kubernetes.io/instance: file-service
+    app.kubernetes.io/part-of: tasksphere
+spec:
+  type: ClusterIP
+  selector:
+    app.kubernetes.io/name: file-service
+    app.kubernetes.io/instance: file-service
+  ports:
+    - port: 3004
+      targetPort: 3004
+      protocol: TCP
+      name: http
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: notification-service
+  namespace: tasksphere
+  labels:
+    app.kubernetes.io/name: notification-service
+    app.kubernetes.io/instance: notification-service
+    app.kubernetes.io/part-of: tasksphere
+spec:
+  type: ClusterIP
+  selector:
+    app.kubernetes.io/name: notification-service
+    app.kubernetes.io/instance: notification-service
+  ports:
+    - port: 3005
+      targetPort: 3005
+      protocol: TCP
+      name: http
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: frontend
+  namespace: tasksphere
+  labels:
+    app.kubernetes.io/name: frontend
+    app.kubernetes.io/instance: frontend
+    app.kubernetes.io/part-of: tasksphere
+spec:
+  type: ClusterIP
+  selector:
+    app.kubernetes.io/name: frontend
+    app.kubernetes.io/instance: frontend
+  ports:
+    - port: 3000
+      targetPort: 3000
+      protocol: TCP
+      name: http
