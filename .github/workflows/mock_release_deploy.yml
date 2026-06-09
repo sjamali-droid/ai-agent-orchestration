@@ -35,7 +35,7 @@ jobs:
         run: echo "Would build & push cw-mcp-server-production:${{ steps.ver.outputs.version }}"
 
       - name: MOCK helm deploy
-        run:cho "Would helm upgrade mcp-server with image tag ${{ steps.ver.outputs.version }}"
+        run: echo "Would helm upgrade mcp-server with image tag ${{ steps.ver.outputs.version }}"
 
       - name: MOCK verify rollout
         run: echo "Would run kubectl rollout status deployment/mcp-server -n proxy-api"
