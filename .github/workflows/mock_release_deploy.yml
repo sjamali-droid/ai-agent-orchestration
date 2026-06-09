@@ -1,0 +1,41 @@
+name: Mock Release Deploy
+
+on:
+  release:
+    types: [published]
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Authorize deployer
+        run: |
+          ALLOWED="${{ vars.PROD_DEPLOYERS }}"
+          ACTOR="${{ github.actor }}"
+          if ! echo ",${ALLOWED// /}," | grep -q ",$ACTOR,"; then
+            echo "::error::$ACTOR is not authorized to deploy."
+            exit 1
+          fi
+          echo "✅ $ACTOR authorized."
+
+      - name: Resolve version from release tag
+        id: ver
+        run: |
+          TAG="${{ github.event.release.tag_name }}"
+          echo "version=${TAG#v}" >> "$GITHUB_OUTPUT"
+          echo "Release tag : $TAG"
+          echo "Version     : ${TAG#v}"
+          echo "Prerelease? : ${{ github.event.release.prerelease }}"
+
+      - name: MOCK build & push image
+        run: echo "Would build & push cw-mcp-server-production:${{ steps.ver.outputs.version }}"
+
+      - name: MOCK helm deploy
+        run: echo "Would helm upgrade mcp-server with image tag ${{ steps.ver.outputs.version }}"
+
+      - name: MOCK verify rollout
+        run: echo "Would run kubectl rollout status deployment/mcp-server -n proxy-api"
