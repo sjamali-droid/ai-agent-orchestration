@@ -1,5 +1,10 @@
 # Agentic project orchestration framework
 
+
+
+
+
+
 This repository is a **markdown-first orchestration framework** you use inside **Cursor** (or any editor that can follow the same files). You **do not** run a single “orchestration server.” You **provide your project’s requirements and profile**, then drive specialized **agents** (project manager, architect, developer, DevSecOps, QA) according to one master specification. Together they break down the work, produce contracts and ADRs, implement code in **your** repos, and move the project toward completion in a repeatable, reviewable way.
 
 **TaskSphere** in this repo is only a **reference sample** (example SRS-aligned layout and a demo stack). Using that sample app is **optional**; the framework is meant to work for **any** project once `profile/` and the issue backlog reflect **your** system.
