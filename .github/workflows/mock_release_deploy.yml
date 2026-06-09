@@ -3,6 +3,7 @@ name: Mock Release Deploy
 on:
   release:
     types: [published]
+  workflow_dispatch:        # <-- added: lets you run it manually for testing
 
 permissions:
   id-token: write
@@ -27,7 +28,7 @@ jobs:
         run: |
           TAG="${{ github.event.release.tag_name }}"
           echo "version=${TAG#v}" >> "$GITHUB_OUTPUT"
-          echo "Release tag : $TAG"
+          echo "Release tag : ${TAG:-(manual run, no tag)}"
           echo "Version     : ${TAG#v}"
           echo "Prerelease? : ${{ github.event.release.prerelease }}"
 
